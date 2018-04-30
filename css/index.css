@@ -1,0 +1,30 @@
+* {
+    font-family: "Microsoft YaHei" ! important;
+}
+
+.oper_button{
+    margin: 10px 0px 20px 0px;
+}
+
+.oper_button .button{
+    margin: 0px 10px 0 10px;
+}
+
+.oper_button .button_help{
+    margin: 0px 10px 0 10px;
+}
+
+#diff_res .diff_table_info {
+    color: red;
+}
+
+
+#diff_res .diff_table{
+    margin-top: 10px;
+    border-top: 2px solid;
+    padding: 2px;
+}
+
+#diff_res .diff_info{
+    font-size: 14px;
+}

@@ -1,0 +1,31 @@
+{
+    "cmd": "1",
+    "data": {
+        "id": 24,
+        "canAddOppt": false,
+        "formModules": [{
+            "typeName": "sdfdf",
+            "problems": [{
+                "problemSchemaType": 1,
+                "name": "sdfd sgirewghire",
+                "score": 0,
+                "important": false,
+                "descriptionHit": "",
+                "oppts": [{
+                    "id": 186
+                }]
+            }]
+        }],
+        "scoreItems": [{
+            "name": "sdf ",
+            "scoreBegin": 0,
+            "scoreEnd": 0
+        }],
+        "imptRules": [{
+            "countNum": 0,
+            "discountNum": 0
+        }]
+    },
+    "sign": "",
+    "version": 1
+}

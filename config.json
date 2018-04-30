@@ -1,0 +1,18 @@
+{
+    "database": [
+        {"id":"dbpub", "host": "rdsmf9s1e10y13w90eu2.mysql.rds.aliyuncs.com", "port": 3306, "user": "dbpub", "password": "oplus_2016", "database": "dbpub"},
+        {"id":"dbyh", "host": "rds4vla0myhw08d2tav8.mysql.rds.aliyuncs.com", "port": 3306, "user": "dbyh", "password": "oplus_2016", "database": "dbyh"},
+        {"id":"dbjy", "host": "rds4vla0myhw08d2tav8.mysql.rds.aliyuncs.com", "port": 3306, "user": "dbjy", "password": "oplus_2016", "database": "dbjy"}
+    ],
+
+    "table": [
+        {"name": "jy_tassetday", "table": "jy_tassetday", "key": "asset_id", "databse_id": "dbjy",
+            "major_field":"asset_id,begin_cash,current_cash,futures_prepare,future_temp_balance,closed_profit"},
+        {"name": "jy_tunitstock", "table": "jy_tunitstock", "key": "combi_id,invest_type,position_type,bind_seat,stockholder_id,inter_code", "databse_id": "dbjy",
+            "major_field":"asset_id,market_no,inter_code,begin_amount,current_amount,carryover_cost,position_type,original_profit"},
+        {"name": "jy_tentrusts", "table": "jy_tentrusts", "key": "entrust_serial_no", "databse_id": "dbjy",
+            "major_field":"entrust_serial_no,report_code,market_no,entrust_direction,entrust_amount,entrust_price,busin_amount,prebuy_frozen_balance"},
+        {"name": "jy_trealdeal", "table": "jy_trealdeal", "key": "realdeal_serial_no", "databse_id": "dbjy",
+            "major_field":"realdeal_serial_no,entrust_serial_no,report_code,market_no,entrust_direction,deal_amount,deal_price,deal_balance,total_fee"}
+    ]
+}
