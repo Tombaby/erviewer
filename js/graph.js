@@ -4,18 +4,25 @@ var util = util || {};
 util.page = util.page || {};
 
 util.page.getViewWidth = function () {
-    var doc = document,
-        client = doc.compatMode == 'BackCompat' ? doc.body : doc.documentElement;
+    return Math.max(document.body.scrollWidth, document.body.width);
+    // var doc = document;
+    // console.log(doc.documentElement);
+    // var client = doc.compatMode == 'BackCompat' ? doc.body : doc.documentElement;
 
-    return client.clientWidth;
+    // console.log(client)
+    // console.log(client.clientWidth);
+    // return client.clientWidth;
 };
 util.page.getHeight = function () {
-    var doc = document,
-        body = doc.body,
-        html = doc.documentElement,
-        client = doc.compatMode == 'BackCompat' ? body : doc.documentElement;
-
-    return Math.max(html.scrollHeight, body.scrollHeight, client.clientHeight);
+    return Math.max(document.body.scrollHeight, document.body.clientHeight);
+    // var doc = document,
+    //     body = doc.body,
+    //     html = doc.documentElement,
+    //     client = doc.compatMode == 'BackCompat' ? doc.body : doc.documentElement;
+    // console.log(body);
+    // console.log(html)
+    // console.log(client);
+    // return Math.max(html.scrollHeight, body.scrollHeight, client.clientHeight);
 };
 
 var test = test || {};
