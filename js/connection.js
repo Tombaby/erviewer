@@ -95,10 +95,11 @@ Raphael.fn.connection = function (obj1, obj2, line, text) {
     y1 = y1.toFixed(3);
     x4 = x4.toFixed(3);
     y4 = y4.toFixed(3);
-    var arrow = getArrow(Raphael, 10, 20, x3, y3, x4, y4);
+    var arrow = getArrow(Raphael, 5, 30, x3, y3, x4, y4);
 
-    var path = ["M", x1, y1, "C", x2, y2, x3, y3, x4, y4, "L", arrow[0], arrow[1], "M", x4, y4, "L", arrow[2], arrow[3]].join(",");
+    // var path = ["M", x1, y1, "C", x2, y2, x3, y3, x4, y4, "L", arrow[0], arrow[1], "M", x4, y4, "L", arrow[2], arrow[3]].join(",");
     // var path = ["M", x1.toFixed(3), y1.toFixed(3), "C", x2, y2, x3, y3, x4.toFixed(3), y4.toFixed(3)].join(",");
+    var path = ["M", x1, y1, "C", x2, y2, x3, y3, x4, y4, "M", x4, y4, "L", arrow[0], arrow[1], arrow[2], arrow[3], "z"].join(",");
 
     if (line && line.line) {
         line.line.attr({

@@ -1,28 +1,18 @@
-
-
 var util = util || {};
 util.page = util.page || {};
 
 util.page.getViewWidth = function () {
-    return Math.max(document.body.scrollWidth, document.body.width);
-    // var doc = document;
-    // console.log(doc.documentElement);
-    // var client = doc.compatMode == 'BackCompat' ? doc.body : doc.documentElement;
-
-    // console.log(client)
-    // console.log(client.clientWidth);
-    // return client.clientWidth;
+    var w1 = document.compatMode == 'BackCompat' ? document.body.scrollWidth : document.documentElement.scrollWidth;
+    var w2 = document.compatMode == 'BackCompat' ? document.body.clientWidth : document.documentElement.clientWidth;
+    var w3 = window.innerWidth;
+    return Math.max(w1, w2, w3);
 };
-util.page.getHeight = function () {
-    return Math.max(document.body.scrollHeight, document.body.clientHeight);
-    // var doc = document,
-    //     body = doc.body,
-    //     html = doc.documentElement,
-    //     client = doc.compatMode == 'BackCompat' ? doc.body : doc.documentElement;
-    // console.log(body);
-    // console.log(html)
-    // console.log(client);
-    // return Math.max(html.scrollHeight, body.scrollHeight, client.clientHeight);
+
+util.page.getViewHeight = function () {
+    var h1 = document.compatMode == 'BackCompat' ? document.body.scrollHeight : document.documentElement.scrollHeight;
+    var h2 = document.compatMode == 'BackCompat' ? document.body.clientHeight : document.documentElement.clientHeight;
+    var h3 = window.innerHeight;
+    return Math.max(h1, h2, h3);
 };
 
 var test = test || {};
@@ -44,9 +34,9 @@ test = {
 test.showGraph = function () {
     var me = test,
         w = util.page.getViewWidth(),
-        h = util.page.getHeight();
+        h = util.page.getViewHeight();
 
-    me.w = w - 280;
+    me.w = w - 80;
     me.h = h - 30;
     me.r = Raphael("canvas", me.w, me.h);
     me.graphs = me.r.set();
@@ -75,10 +65,7 @@ test.renderConnections = function (lines) {
 }
 
 test.redrawConnections = function () {
-    var me = test,
-        r = me.r,
-        connections = me.connections;
-
+    var me = test, r = me.r, connections = me.connections;
     $.each(connections, function (key, value) {
         r.connection(value);
     });
@@ -101,23 +88,16 @@ test.handlerMove = function (target) {
 
     //var id = T.dom.getAttr(target,'data-id');
     var id = $(target).attr("data-id");
-
     var rect = me.r.getById(id);
-
     rect.attr(att);
-
     me.redrawConnections();
     // me.r.safari();
-
 }
 
 test.createGraph = function (i, graph) {
-
     var me = test;
     var template = "";
-
     graph.index = i;
-
     // x, y 需要详看
     var x, y;
     if (graph.xCoordinate) {
@@ -127,7 +107,6 @@ test.createGraph = function (i, graph) {
     }
     if (graph.yCoordinate) {
         y = graph.yCoordinate;
-
     } else {
         y = 20 + (~~(i / num) * cellH);
     }
@@ -156,7 +135,6 @@ test.createGraph = function (i, graph) {
         cursor: "move"
     });
 
-
     $("#graph").append(temp);
     var graphDom = $(".graph").eq(i);
     var width = graphDom.width();
@@ -169,7 +147,6 @@ test.createGraph = function (i, graph) {
     });
 
     me.graphs.push(stateR);
-
     me.maps[graph.id] = i;
 
     graphDom.draggable({
@@ -193,44 +170,7 @@ test.renderGraph = function() {
     });
 
     test.renderConnections(connectionData);
-
 }
-// test.renderGraph = function () {
-//     var me = test;
-//     $.ajax({
-//         url: 'js/position.json',
-//         type: 'POST',
-//         dataType: "json",
-//         data: {},
-//         success: function (json) {
-
-//             if (json.success) {
-//                 var data = json.data,
-//                     graphsData = data.states,
-//                     connectionData = data.relations;
-
-//                 // render graph and svg rect
-//                 // 这一块可以抽离出去
-//                 $.each(graphsData, function (i, graph) {
-
-//                     test.createGraph(i, graph);
-
-//                 });
-
-
-//                 test.renderConnections(connectionData);
-
-//             } else {
-//                 alert(json.message);
-//             }
-//         },
-//         error: function (error) {
-//             console.log(error);
-//             alert("后端返回失败");
-//         }
-//     });
-// }
-
 
 $(function () {
     test.showGraph();
