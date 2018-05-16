@@ -23,35 +23,35 @@ function createWindow() {
     slashes: true
   }))
 
-  dbconn = mysql.createConnection({
-    host: '192.168.16.173',
-    user: 'emotwo',
-    password: 'emu2018two',
-    port: '3306',
-    database: 'emucoo-cfb'
-  });
+  // dbconn = mysql.createConnection({
+  //   host: '192.168.16.173',
+  //   user: 'emotwo',
+  //   password: 'emu2018two',
+  //   port: '3306',
+  //   database: 'emucoo-cfb'
+  // });
 
-  var dbtables = Array();
-  dbconn.connect(function(err) {
-    (function(conn) {
-      conn.query("show tables", function(err, rss){
-        console.log(err);
-        rss.forEach(element => {
-          var tbl = {"name": element['Tables_in_emucoo-cfb'], "fields": []}          
-          conn.query('desc ' + element['Tables_in_emucoo-cfb'], function(e, rs){
-            rs.forEach(r => {
-              tbl.fields.push(r)
-            });
-          })
-          dbtables.push(tbl)
-        });
+  // var dbtables = Array();
+  // dbconn.connect(function(err) {
+  //   (function(conn) {
+  //     conn.query("show tables", function(err, rss){
+  //       console.log(err);
+  //       rss.forEach(element => {
+  //         var tbl = {"name": element['Tables_in_emucoo-cfb'], "fields": []}          
+  //         conn.query('desc ' + element['Tables_in_emucoo-cfb'], function(e, rs){
+  //           rs.forEach(r => {
+  //             tbl.fields.push(r)
+  //           });
+  //         })
+  //         dbtables.push(tbl)
+  //       });
         
-        dbtables.forEach(element => {
-          console.log(element)
-        });
-      });
-    })(dbconn);
-  });
+  //       dbtables.forEach(element => {
+  //         console.log(element)
+  //       });
+  //     });
+  //   })(dbconn);
+  // });
 
   // 打开开发者工具。
   win.webContents.openDevTools()
