@@ -81,10 +81,14 @@
         
     }
     
+    
     const DBModel = require("./js/erview.js")
 
-    var erview = new DBModel();
-    // erview.init({});
+    var erview = new DBModel({
+        onLoaded: function(models) {
+            console.log(models);
+        }
+    });
 
 
 </script>
