@@ -31,6 +31,9 @@
             padding: 5px;
             text-align: center;
         }
+        #graph div.graph div.content td {
+            text-align: left;
+        }
         #button {width: 200px; height: 200px; position: absolute; top:5px; right: 10px; display: block; font-size: 16px; font-weight: bold;}
     </style>
 </head>
@@ -57,38 +60,13 @@
 </div>
 </script>
 <script>
-    window.onresize = function(event) {
-        // console.log(document.documentElement.scrollWidth);
-        // console.log(document.documentElement.scrollHeight);
-        var svg = document.getElementsByTagName("svg")[0];
-        // console.log(svg.getAttribute('width'))
-        // console.log(svg.getAttribute('height'))
-        svg.setAttribute('width', window.innerWidth)
-        svg.setAttribute('height', window.innerHeight)
-        // console.log(svg.getAttribute('width'))
-        // console.log(svg.getAttribute('height'))
-    }
-
-    window.onscroll = function(event) {
-        var svg = document.getElementsByTagName("svg")[0]
-        svg.setAttribute("width", document.body.scrollWidth)
-        svg.setAttribute("height", document.body.scrollHeight)
-        // console.log(window.innerWidth)
-        // console.log(document.documentElement.scrollWidth)
-        // console.log(document.body.scrollWidth)
-        // console.log(window.pageXOffset)
-        // console.log(document.documentElement.pageXOffset)
-        
-    }
-    
-    
     const DBModel = require("./js/erview.js")
-
     var erview = new DBModel({
         onLoaded: function(models) {
-            console.log(models);
+            Graph.drawModels(models, 'canvas', 'graph');
+            console.log(Graph);
         }
-    });
+    }); 
 
 
 </script>

@@ -56,9 +56,10 @@ module.exports = function DBModel(options) {
                 var multiSql = sqls.join(';')
                 return asyncQuery(connection, multiSql)
             }).then(rss =>{
-                for(var i = 0; i < tables.length; i++) {
-                    for(const f of rss[i])
-                    tables[i].fields.push(f)
+                for(var i = 0, len = tables.length; i < len; i++) {
+                    for(const f of rss[i]){
+                        tables[i].fields.push(f)
+                    }
                 }
                 for(var table of tables){
                     var htb = ''
