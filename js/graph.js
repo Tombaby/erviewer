@@ -47,7 +47,7 @@
         var me = Graph;
         var models = me.models;
         var graphs = me.graphs;
-        var cols = Math.floor((me.w - 80) / 180);
+        var cols = Math.floor((me.w - 80) / 200);
 
         for (var i = 0, len = models.length; i < len; i++) {
             var x = 220 * (i % cols) + 40;
@@ -60,6 +60,15 @@
             }
             graphs[i] = graph;
         }
+    }
+
+    function drawGraphDom(model) {
+        var dom = '<table>';
+        model.fields.forEach(fld => {
+            dom += '<tr><td>'+ fld.name +'</td><td>'+fld.type+'</td><td>'+fld.null+'</td><td>'+fld.default+'</td><td>'+fld.extra+'</td><td>'+fld.comment+'</td></tr>'
+        });
+        dom += '</table>'
+        return dom;
     }
 
     function drawGraph() {
@@ -94,18 +103,23 @@
             divE.setAttribute('class', 'graph');
             divE.setAttribute('id', 'div' + i);
             divE.setAttribute('data-index', i);
-            divE.setAttribute('style', 'left:' + x + 'px; top:' + y + 'px;');
-            divE.innerHTML = '<div class="title">' + me.models[i].name + '</div><div class="content">' + me.models[i].dom + '</div>';
+            divE.setAttribute('style', 'left:' + x + 'px; top:' + y + 'px;' + 'z-index:'+ i + ';');
+            divE.innerHTML = '<div class="title">' + me.models[i].name + '</div><div class="content">' + drawGraphDom(me.models[i]) + '</div>';
             graphContainer.appendChild(divE);
+            me.graphs[i].domId = divE.getAttribute('id');
 
-            var elm = document.getElementById(divE.getAttribute('id'));
+            var elm = document.getElementById(me.graphs[i].domId);
             jQuery(elm).draggable({
                 cursor: "move",
                 start: function () {
+                    this.style.zIndex = 1000 + parseInt(this.style.zIndex);
                     dragHandler(elm);
                 },
                 drag: function () {
                     dragHandler(elm);
+                },
+                stop: function() {
+                    this.style.zIndex = parseInt(this.style.zIndex) - 1000;
                 }
             });
 
@@ -142,7 +156,7 @@
         var me = Graph;
         me.w = width;
         me.h = height;
-        console.log(me.w, me.h);
+        // console.log(me.w, me.h);
         me.canvas.setSize(me.w, me.h);
     }
 
@@ -151,7 +165,9 @@
         calGraphPositions();
         for(var i = 0; i < me.graphs.length; i++){
             var x = me.graphs[i].position.x, y = me.graphs[i].position.y;
-            $('#div' + i).attr('style', 'left:'+x+'px; top:'+y+'px;');
+            var elm = document.getElementById('div' + i);
+            elm.style.left = x + 'px';
+            elm.style.top = y + 'px';
             me.rects[i].attr({x: x, y: y});
         }
     }
@@ -159,7 +175,7 @@
     window.Graph = Graph;
 
     window.onresize = function (event) {
-        console.log('aaa');
+        // console.log('aaa');
         var svg = document.getElementsByTagName("svg")[0]
         if (svg) {
             Graph.resize(window.innerWidth, window.innerHeight)
@@ -168,7 +184,7 @@
     }
 
     window.onscroll = function (event) {
-        this.console.log('bbb');
+        // this.console.log('bbb');
         var svg = document.getElementsByTagName("svg")[0]
         if (svg) {
             Graph.resize(document.body.scrollWidth, document.body.scrollHeight);

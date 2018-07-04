@@ -46,13 +46,18 @@
         .icon {border-style: solid; border-width: 1px; border-color: lightgrey; padding: 4px; border-radius: 4px;}
         .icon:hover {border-color: #666666; background: #999999; cursor: pointer;}
 
+        .dialog {width: 400px; display: none; position: absolute; z-index: 999;  border: 1px solid #999999; box-shadow: 2px 1px 5px; color: black; background-color: #eeeeee; }
+        .dialog-head {height: 16px; padding: 4px; background-color: gainsboro; border-bottom: 1px solid #999999;}
+        .dialog-head .title {float: left; font-size: 12px; font-style: inherit; }
+        .dialog-head .icons {float: right; padding: 2px; border: none;}
+        .dialog-body {padding: 4px; min-height: 160px;}
     </style>
 </head>
 <body>
 <div id="content">
     <div id="banner">
         <ul>
-            <li><a title="open model file"><i class="icon iconfont icon-refresh"></i></a></li>
+            <li><a title="open model file" onclick="openFileDialog()"><i class="icon iconfont icon-refresh"></i></a></li>
             <li><a title="save model file"><i class="icon iconfont icon-download"></i></a></li>
             <li><a title="import from db"><i class="icon iconfont icon-down"></i></a></li>
             <li><a title="export to db"><i class="icon iconfont icon-up"></i></a></li>
@@ -61,7 +66,17 @@
     <div id="canvas"></div>
     <div id="graph"></div>
 </div>
-
+<div id="open-file-dialog" class="dialog">
+    <div class="dialog-head">
+        <div class="title">Open Model File...</div>
+        <div class="icons"><a onclick="closeFileDialog()"><i class="iconfont-small icon-error"></i></a></div>
+    </div>
+    <div class="dialog-body">
+        <form>
+            <input type="file" ></file>
+        </form>
+    </div>
+</div>
 <script type="text/javascript" src="js/raphael.js"></script>
 <script type="text/javascript" src="js/jquery-1.12.4.js"></script>
 <script>if (typeof module === 'object') {window.jQuery = window.$ = module.exports;};</script>
@@ -75,7 +90,22 @@
     <div class="content"><%=data.chineseName%></div>
 </div>
 </script>
+
 <script>
+    $('#open-file-dialog').draggable({
+        cursor: "move"
+    });
+
+    function closeFileDialog() {
+        $('#open-file-dialog').css('display', 'none');
+    }
+
+    function openFileDialog() {
+        event.preventDefault();
+        var x = window.innerWidth / 2 - 200; 
+        $('#open-file-dialog').css({'display':'inline-block', 'left': x+'px', 'top': '80px'});
+    }
+
     const DBModel = require("./js/erview.js")
     var erview = new DBModel({
         onLoaded: function(models) {

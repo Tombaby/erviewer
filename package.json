@@ -7,6 +7,8 @@
     },
     "dependencies": {
         "mysql": "^2.15.0",
+        "node-sqlparser": "^1.0.2",
+        "simple-sql-parser": "^2.0.0-alpha.1",
         "underscore": "^1.9.0"
     },
     "devDependencies": {

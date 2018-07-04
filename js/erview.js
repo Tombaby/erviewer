@@ -1,5 +1,5 @@
 const mysql = require('mysql')
-
+let parseSQL = require('./sqlparser')
 
 module.exports = function DBModel(options) {
     this.dbinfo = options.dbinfo || {
@@ -41,37 +41,19 @@ module.exports = function DBModel(options) {
         if(err){
             this.listeners.onConnectionErr(err)
         } else {
-            var tables = [];
+            this.models = [];
             asyncQuery(connection, "show tables").then(rss =>{
-                rss.forEach(element => {
-                    tables.push({
-                        name: element['Tables_in_emucoo-cfb'], 
-                        fields: []
-                    })
-                })
                 var sqls = [];
-                for(const tb of tables) {
-                    sqls.push('desc ' + tb.name)
-                }
+                rss.forEach(element => {
+                    sqls.push('show create table ' + element['Tables_in_emucoo-cfb'])
+                })
                 var multiSql = sqls.join(';')
                 return asyncQuery(connection, multiSql)
             }).then(rss =>{
-                for(var i = 0, len = tables.length; i < len; i++) {
-                    for(const f of rss[i]){
-                        tables[i].fields.push(f)
-                    }
-                }
-                for(var table of tables){
-                    var htb = ''
-                    for(var fd of table.fields) {
-                        // console.log(fd)
-                        htb += '<tr><td>'+fd.Field+'</td><td>'+fd.Type+'</td><td>'+fd.Key+'</td></tr>'
-                    }
-                    table.dom = '<table>' + htb + '</table>'
-                }
-                this.models = tables;
+                rss.forEach(rs => {
+                    this.models.push(parseSQL(rs[0]["Create Table"]))
+                });
                 this.listeners.onLoaded(this.models)
-
             }).catch(err => {
                 this.listeners.onSqlErr(err)
             })
