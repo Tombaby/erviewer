@@ -41,10 +41,17 @@
     }
 
     function calGraphPositions() {
+        var lftOffset = 10;
+        var wd = jQuery('#nav').css('width');
+        var r = wd.match(/^\d+/);
+        if (r) lftOffset = parseInt(r[0]) + 10;
+        console.log(lftOffset);
+        var rgtOffset = 10;
         var me = Graph;
-        var cols = Math.floor((me.w - 80) / 200);
+        var cols = Math.floor((me.w - lftOffset - rgtOffset) / 200);
+        console.log('cols = ' + cols);
         for (var i = 0, len = me.models.length; i < len; i++) {
-            var x = 220 * (i % cols) + 40;
+            var x = 180 * (i % cols)  + lftOffset;
             var y = (Math.floor(i / cols) + 1) * 50;
             var dn = me.graphs[i] || {};
             var nn = {position: {x: x, y: y}};
@@ -63,28 +70,45 @@
         return dom;
     }
 
-    function drawGraph() {
-        function dragHandler(target) {
-            var me = Graph;
-            var x = parseInt(target.style.left, 10);
-            var y = parseInt(target.style.top, 10);
-            if (Math.abs(x - me.ox) < 5 && Math.abs(y - me.oy) < 5) {
-                return;
+    function focusOnGraph(idx) {
+        var me = Graph;
+        var dom = document.getElementById(me.graphs[idx].domId);
+        dom.style.zIndex = me.graphs.length;
+        var zidx = me.graphs[idx].zIndex;
+        me.graphs[idx].zIndex = me.graphs.length;
+        for (var i = 0, l = me.graphs.length; i < l; i++) {
+            var el = document.getElementById(me.graphs[i].domId);
+            $(el).css('border-color', '#999999');
+            if (me.graphs[i].zIndex > zidx) {
+                me.graphs[i].zIndex -= 1;
+                el.style.zIndex = me.graphs[i].zIndex;
             }
-            var att = {
-                x: x,
-                y: y
-            };
-
-            //var id = T.dom.getAttr(target,'data-id');
-            var index = target.getAttribute('data-index');
-            var rect = me.canvas.getById('rect' + index);
-            rect.attr(att);
-            me.graphs[index].position.x = x;
-            me.graphs[index].position.y = y;
-            // me.redrawConnections();
         }
+        $(dom).css('border-color', '#ff8989');
+    }
 
+    function dragHandler(target) {
+        var me = Graph;
+        var x = parseInt(target.style.left, 10);
+        var y = parseInt(target.style.top, 10);
+        if (Math.abs(x - me.ox) < 5 && Math.abs(y - me.oy) < 5) {
+            return;
+        }
+        var att = {
+            x: x,
+            y: y
+        };
+
+        //var id = T.dom.getAttr(target,'data-id');
+        var index = target.getAttribute('data-index');
+        var rect = me.canvas.getById('rect' + index);
+        rect.attr(att);
+        me.graphs[index].position.x = x;
+        me.graphs[index].position.y = y;
+        // me.redrawConnections();
+    }
+
+    function drawGraph() {
         calGraphPositions();
 
         var me = Graph;
@@ -99,7 +123,7 @@
             divE.setAttribute('data-index', i);
             divE.setAttribute('style', 'left:' + x + 'px; top:' + y + 'px;' + 'z-index:'+ zidx + ';');
             var graph_title = '<div class="title">' + me.models[i].name + '</div>';
-            var graph_icons = '<div class="icons"><a><i class="fa fa-window-maximize" /></a></div>';
+            var graph_icons = '<div class="icons"><a class="w"><i class="fa fa-window-minimize"></i></a></div>';
             var graph_body = drawGraphDom(me.models[i]);
             divE.innerHTML = '<div class="head">' + graph_title + graph_icons + '</div><div class="content">' + graph_body + '</div>';
             graphContainer.appendChild(divE);
@@ -121,35 +145,27 @@
                 }
             });
 
-            jQuery(elm).find('div.icons a').each((i, n) => {
+            jQuery(elm).find('div.content').first().hide();
+            jQuery(elm).find('div.icons a.w').each((i, n) => {
                 $(n).click(function(event) {
-                    if ($(this).children('i').first().attr('class') == 'fa fa-window-maximize') {
-                        $(this).children('i').first().removeClass('fa-window-maximize');
-                        $(this).children('i').first().addClass('fa-window-minimize');
+                    var icn = $(this).children('i').first();
+                    if (icn.hasClass('fa fa-window-maximize')) {
+                        icn.removeClass('fa fa-window-maximize');
+                        icn.addClass('fa fa-window-minimize');
                         // console.log($(this).parent().parent().parent().children().last());
-                        $(this).parent().parent().parent().children().last().css('display', 'none');
+                        icn.parent().parent().parent().parent().children().last().hide();
                     } else {
-                        $(this).children('i').first().removeClass('fa-window-minimize');
-                        $(this).children('i').first().addClass('fa-window-maximize');
+                        icn.removeClass('fa fa-window-minimize');
+                        icn.addClass('fa fa-window-maximize');
                         // console.log($(this).parent().parent().parent().children().last()); 
-                        $(this).parent().parent().parent().children().last().css('display', 'block');
+                        icn.parent().parent().parent().parent().children().last().show();
                     }
                 });
             });
 
             jQuery(elm).mousedown(function(event){
-                var me = Graph;
-                this.style.zIndex = me.graphs.length;
                 var idx = parseInt($(this).attr('data-index'));
-                var zidx = me.graphs[idx].zIndex;
-                me.graphs[idx].zIndex = me.graphs.length;
-                for (var i = 0, l = me.graphs.length; i < l; i++) {
-                    if (me.graphs[i].zIndex > zidx) {
-                        me.graphs[i].zIndex -= 1;
-                        var el = document.getElementById(me.graphs[i].domId);
-                        el.style.zIndex = me.graphs[i].zIndex;
-                    }
-                }
+                focusOnGraph(idx);
             });
 
             var w = elm.getAttribute('width');
@@ -176,11 +192,59 @@
         me.w = util.page.getViewWidth();
         me.h = util.page.getViewHeight();
         me.canvas = Raphael(canvasName, me.w, me.h);
-        console.log($('#' + canvasName).css('width'));
+        // console.log($('#' + canvasName).css('width'));
         me.rects = me.canvas.set();
         me.graphs = [];
 
         drawGraph();
+    }
+
+    Graph.showAllGraphs = function(st) {
+        var me = Graph;
+        if (st) {
+            me.graphs.forEach(element => {
+                var ob = $('#' + element.domId);
+                ob.show();
+                var icn = ob.find('div.icons a.v').first().children('i').first();
+                if (icn) {
+                    icn.removeClass();
+                    icn.addClass('fa fa-eye-slash');
+                }
+            });
+        } else {
+            me.graphs.forEach(element => {
+                var ob = $('#' + element.domId);
+                ob.hide();
+                var icn = ob.find('div.icons a.v').first().children('i').first();
+                if (icn) {
+                    icn.removeClass();
+                    icn.addClass('fa fa-eye');
+                }
+            });
+        }
+    }
+
+    Graph.focusGraph = function(graphNm) {
+        var me = Graph;
+        for(var i = 0,  ln = me.models.length; i < ln; i++) {
+            if (me.models[i].name == graphNm) {
+                $('#' + me.graphs[i].domId).show();
+                focusOnGraph(i); 
+                break;
+            }
+        }
+    }
+
+    Graph.hideGraph = function(graphNm) {
+        var me = Graph;
+        for(var i = 0,  ln = me.models.length; i < ln; i++) {
+            if (me.models[i].name == graphNm) {
+                var o = $('#' + me.graphs[i].domId);
+                o.hide();
+                o.css('border-color', '#999999');
+                break;
+            }
+        }
     }
 
     Graph.resize = function (width, height) {
@@ -201,6 +265,23 @@
             elm.style.top = y + 'px';
             me.rects[i].attr({x: x, y: y});
         }
+    }
+
+    Graph.maxAllGraphs = function(st) {
+        $('#graph div.graph').each((i, n) => {
+            var icn = $(n).find('div.icons a.w').first().children('i').first();
+            if (st) {
+                icn.removeClass('fa fa-window-minimize');
+                icn.addClass('fa fa-window-maximize');
+                // console.log($(this).parent().parent().parent().children().last());
+                icn.parent().parent().parent().parent().children().last().show();
+            } else {
+                icn.removeClass('fa fa-window-maximize');
+                icn.addClass('fa fa-window-minimize');
+                // console.log($(this).parent().parent().parent().children().last()); 
+                icn.parent().parent().parent().parent().children().last().hide();
+            } 
+        });
     }
 
     // Graph.handlerMove = function (target) {
