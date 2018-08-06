@@ -11,12 +11,13 @@ function parseSQL(sqlStr) {
         field['name'] = field['name'].replace(/`/g,'').trim()
         field['type'] = field['type'].replace(/`/g,'').trim()
         field['null'] = field['null'].replace(/,/,'').trim()
-        field['default'] = field['default'].replace('DEFAULT','').replace("''","").trim()
+        field['default'] = field['default'].replace('DEFAULT','').replace("''","").replace(",", "").trim()
         field['extra'] = field['extra'].trim()
         field['comment'] = field['comment'].replace('COMMENT', '').replace(/'/g,"").trim()
         return field
     }
     var parse_index = function (s) {
+        console.log(s);
         var index = {
             "name": /`\w+`/.exec(s)[0],
             "type": /(PRIMARY|UNIQUE|FULLTEXT)?\s?KEY/.exec(s)[0],
@@ -25,7 +26,7 @@ function parseSQL(sqlStr) {
         }
         index['name'] = index['name'].replace(/`/g,'').trim()
         index['type'] = index['type'].replace(/`/g,'').replace('(','').replace(')','').trim()
-        index['field'] = index['field'].replace(/`/g,'').trim()
+        index['field'] = index['field'].replace(/`/g,'').replace('(','').replace(')','').trim()
         index['algorithm'] = index['algorithm'].replace('USING','').trim()
         return index
     }
@@ -63,11 +64,11 @@ function parseSQL(sqlStr) {
             table['comment'] = table['comment'].replace(/COMMENT=/,'').trim()
             table['charset'] = table['charset'].replace(/CHARSET=/,'').trim()
         } else {
-            if (/(PRIMARY|UNIQUE|FULLTEXT)?\s?KEY.*/.test(sql[i])) {
+            if (/^(PRIMARY|UNIQUE|FULLTEXT)?\s?KEY.*/.test(sql[i].trim())) {
                 table['indexs'].push(parse_index(sql[i]))
             }
-            if (/CONSTRAINT\s.*/.test(sql[i])) {
-                table['constraints'].push(parse_constraint(sql[i]))
+            if (/^CONSTRAINT\s.*/.test(sql[i])) {
+                table['constraints'].push(parse_constraint(sql[i].trim()))
             }
             if (/^`\w+`.*/.test(sql[i].trim())) {
                 table['fields'].push(parse_field(sql[i]))

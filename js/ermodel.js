@@ -19,8 +19,11 @@ module.exports = function DBModel(options) {
             console.log(err)
         }
     } 
-    this.listeners.onLoaded = options.onLoaded || function(models) {
-        console.log('default callback notification: onLoaded')
+
+    this.addListener = function(fnc) {
+        this.listeners.onLoaded = fnc || function(models) {
+            console.log('default callback notification: onLoaded')
+        }
     }
 
     this.status = 0;
@@ -37,27 +40,30 @@ module.exports = function DBModel(options) {
     }
 
     this.models = [];
-    var connection = mysql.createConnection(this.dbinfo);
-    connection.connect(err => {
-        if(err){
-            this.listeners.onConnectionErr(err)
-        } else {
-            asyncQuery(connection, "show tables").then(rss =>{
-                var sqls = [];
-                rss.forEach(element => {
-                    sqls.push('show create table ' + element['Tables_in_' + this.dbinfo.database])
+
+    this.load = function() {
+        var connection = mysql.createConnection(this.dbinfo);
+        connection.connect(err => {
+            if(err){
+                this.listeners.onConnectionErr(err)
+            } else {
+                asyncQuery(connection, "show tables").then(rss =>{
+                    var sqls = [];
+                    rss.forEach(element => {
+                        sqls.push('show create table ' + element['Tables_in_' + this.dbinfo.database])
+                    })
+                    var multiSql = sqls.join(';')
+                    return asyncQuery(connection, multiSql)
+                }).then(rss =>{
+                    rss.forEach(rs => {
+                        this.models.push(parseSQL(rs[0]["Create Table"]))
+                    });
+                    this.listeners.onLoaded(this.models)
+                }).catch(err => {
+                    this.listeners.onSqlErr(err)
                 })
-                var multiSql = sqls.join(';')
-                return asyncQuery(connection, multiSql)
-            }).then(rss =>{
-                rss.forEach(rs => {
-                    this.models.push(parseSQL(rs[0]["Create Table"]))
-                });
-                this.listeners.onLoaded(this.models)
-            }).catch(err => {
-                this.listeners.onSqlErr(err)
-            })
-        }
-    });
+            }
+        });
+    }
     
 }

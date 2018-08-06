@@ -21,15 +21,12 @@
     var Graph = Graph || {};
 
     Graph = {
-        w: 960,
-        h: 480,
-        // styles: { point: [170, 60] },
-        canvas: null, //(function(){
+        w: 960, h: 480,
+        models: null,
+        canvas: null, 
         connections: [], //关系集合
         rects: null, // rect集合
         graphs: []
-        // maps: [], //顶点和索引的对应关系，为了建立索引关系
-        // config: null
     }
 
 
@@ -40,16 +37,24 @@
         });
     }
 
+
+    function getSize(str) {
+        let r = str.match(/^\d+/);
+        if (r) {
+            return parseInt(r[0]);
+        } else {
+            return 0;
+        }
+    }
+
     function calGraphPositions() {
-        var lftOffset = 10;
         var wd = jQuery('#nav').css('width');
-        var r = wd.match(/^\d+/);
-        if (r) lftOffset = parseInt(r[0]) + 10;
-        console.log(lftOffset);
+        var lftOffset = 10 + getSize(wd);
+        // console.log(lftOffset);
         var rgtOffset = 10;
         var me = Graph;
         var cols = Math.floor((me.w - lftOffset - rgtOffset) / 200);
-        console.log('cols = ' + cols);
+        // console.log('cols = ' + cols);
         for (var i = 0, len = me.models.length; i < len; i++) {
             var x = 180 * (i % cols)  + lftOffset;
             var y = (Math.floor(i / cols) + 1) * 50;
@@ -62,9 +67,38 @@
     }
 
     function drawGraphDom(model) {
+        function judgeIndex(fld) {
+            if (model.indexs) {
+                for (let i = 0, l = model.indexs.length; i < l; i++) {
+                    let element = model.indexs[i];
+                    if (element.field.indexOf(fld.name) > -1) {                        
+                        switch(element.type) {
+                            case "PRIMARY KEY": {
+                                return '<i class="fa fa-key" title="'+ element.type +'"></i>';
+                            }
+                            case "UNIQUE KEY" : {
+                                return '<i class="fa fa-dot-circle-o" title="'+ element.type +'"></i>';
+                            }
+                            case "FULLTEXT KEY": {
+                                return '<i class="fa fa-circle" title="'+ element.type +'"></i>';
+                            }
+                            case "KEY": {
+                                return '<i class="fa fa-circle-o" title = "'+ element.type +'"></i>';
+                            }
+                            default: {
+                                return '';
+                            }
+                        }
+                    }
+                }
+            }
+            return '';
+        }
         var dom = '<table>';
         model.fields.forEach(fld => {
-            dom += '<tr><td>'+ fld.name +'</td><td>'+fld.type+'</td><td>'+fld.null+'</td><td>'+fld.default+'</td><td>'+fld.extra+'</td><td>'+fld.comment+'</td></tr>'
+            let k = judgeIndex(fld);
+            console.log(k);
+            dom += '<tr><td>'+ k +'</td><td>'+ fld.name +'</td><td>'+fld.type+'</td><td>'+fld.null+'</td><td>'+fld.default+'</td><td>'+fld.extra+'</td><td>'+fld.comment+'</td></tr>'
         });
         dom += '</table>'
         return dom;
@@ -168,8 +202,8 @@
                 focusOnGraph(idx);
             });
 
-            var w = elm.getAttribute('width');
-            var h = elm.getAttribute('height');
+            var w = getSize($(elm).css('width'));
+            var h = getSize($(elm).css('height'));
             var rect = me.canvas.rect(x, y, w, h);
             rect.id = 'rect' + i;
             rect.attr({
@@ -184,18 +218,31 @@
         }
     }
 
+    
+
     Graph.drawModels = function (models, canvasName, modelContainerName) {
         var me = Graph;
+        if (me.canvas) {
+            me.canvas.clear();
+            me.canvas = null;
+        }
+        if (me.rects) {
+            me.rects.clear();
+            me.rects = null;
+        }
+        $('#' + canvasName).find('svg').each((i, n) => {
+            console.log(n);
+            $(n).remove();
+        });
+        $('#' + modelContainerName).children('div').each((i, n) => {$(n).remove();});
         me.models = models;
         me.canvasName = canvasName;
         me.modelContainerName = modelContainerName;
         me.w = util.page.getViewWidth();
         me.h = util.page.getViewHeight();
         me.canvas = Raphael(canvasName, me.w, me.h);
-        // console.log($('#' + canvasName).css('width'));
         me.rects = me.canvas.set();
         me.graphs = [];
-
         drawGraph();
     }
 

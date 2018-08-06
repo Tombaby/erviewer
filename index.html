@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>json demo</title>
+    <title>ERView</title>
     <link rel="stylesheet" href="css/font-awesome.min.css" />
     <style type="text/css">
         html {height: 100%; width: 100%;}
@@ -58,6 +58,9 @@
         .dialog-head .title {float: left; font-size: 12px; font-style: inherit; }
         .dialog-head .icons {float: right; padding: 2px; border: none;}
         .dialog-body {padding: 4px; min-height: 160px;}
+
+        #dbform table {margin-left: 50px; padding: 10px;}
+        #dbform input {width: 180px;}
     </style>
 </head>
 <body>
@@ -72,7 +75,8 @@
         <li class="spliter">|</li>
         <li><a title="open model file" onclick="openFileDialog(this)"><i class="fa fa-folder-open"></i></a></li>
         <li><a title="save model file"><i class="fa fa-floppy-o"></i></a></li>
-        <li><a title="import models from db"><i class="fa fa-download"></i></a></li>
+        <li class="spliter">|</li>
+        <li><a title="import models from db" onclick="openDBDialog(this)"><i class="fa fa-download"></i></a></li>
         <li><a title="export models to db"><i class="fa fa-upload"></i></a></li>
         <li class="spliter">|</li>
         <li><a title="show or hide all table graphs" onclick="onShowAllGraphs(this)"><i class="fa fa-eye-slash"></i></a></li>
@@ -89,10 +93,29 @@
     </div>
 </div>
 
+<div id="open-db-dialog" class="dialog">
+    <div class="dialog-head">
+        <div class="title">Connect Database...</div>
+        <div class="icons"><a onclick="closeDialog(this)"><i class="fa fa-close"></i></a></div>
+    </div>
+    <div class="dialog-body">
+        <form id="dbform">
+            <table>
+                <tr><td><label for="host">Host</label></td><td>:</td><td><input type="text" name="host"></input></td></tr>
+                <tr><td><label for="port">Port</label></td><td>:</td><td><input type="text" name="port"></input></td></tr>
+                <tr><td><label for="database">Database</label></td><td>:</td><td><input type="text" name="database"></input></td></tr>
+                <tr><td><label for="username">User Name</label></td><td>:</td><td><input type="text" name="username"></input></td></tr>
+                <tr><td><label for="password">Password</label></td><td>:</td><td><input type="text" name="password"></input></td></tr>
+                <tr><td></td><td></td><td><button type="reset">Reset</button><button type="button" onclick="importFromDB(this)">Connect</button></td></tr>
+            </table>
+        </form>
+    </div>
+</div>
+
 <div id="open-file-dialog" class="dialog">
     <div class="dialog-head">
         <div class="title">Open Model File...</div>
-        <div class="icons"><a onclick="closeFileDialog()"><i class="fa fa-close"></i></a></div>
+        <div class="icons"><a onclick="closeDialog(this)"><i class="fa fa-close"></i></a></div>
     </div>
     <div class="dialog-body">
         <form>
@@ -108,12 +131,48 @@
 <script type="text/javascript" src="js/graph.js"></script>
 
 <script>
-    $('#open-file-dialog').draggable({
-        cursor: "move"
-    });
+    var dbinfo = {
+        host: '127.0.0.1',        
+        port: '3306',
+        database: 'emucoo-pre',
+        user:'emucoo',
+        password:'12345678',
+        multipleStatements: true
+    };
+    const DBModel = require("./js/ermodel.js");
 
-    function closeFileDialog() {
-        $('#open-file-dialog').css('display', 'none');
+    function openDBDialog(obj) {
+        event.preventDefault();
+        $('#dbform input[name="host"]:first').val(dbinfo.host);
+        $('#dbform input[name="port"]:first').val(dbinfo.port);
+        $('#dbform input[name="database"]:first').val(dbinfo.database);
+        $('#dbform input[name="username"]:first').val(dbinfo.user);
+        $('#dbform input[name="password"]:first').val(dbinfo.password);
+        var x = window.innerWidth / 2 - 200; 
+        $('#open-db-dialog').css({'display':'inline-block', 'left': x+'px', 'top': '80px'});
+    }
+
+    function importFromDB(obj) {
+        dbinfo.host = $('#dbform input[name="host"]:first').val();
+        dbinfo.port = $('#dbform input[name="port"]:first').val();
+        dbinfo.database = $('#dbform input[name="database"]:first').val();
+        dbinfo.user = $('#dbform input[name="username"]:first').val();
+        dbinfo.password = $('#dbform input[name="password"]:first').val();
+        // console.log(dbinfo);
+        
+        let onLoadModels = function(models) {
+            document.title = 'ERView :: '+ dbinfo.database + '@' + dbinfo.host;
+            $('#open-db-dialog').css('display', 'none');
+            showModelsNav(models);
+            Graph.drawModels(models, 'canvas', 'graph');
+        }
+        let ermodel = new DBModel({dbinfo : dbinfo}); 
+        ermodel.addListener(onLoadModels);
+        ermodel.load();
+    }
+
+    function closeDialog(obj) {
+        $(obj).parent().parent().parent().hide();
     }
 
     function openFileDialog(obj) {
@@ -200,22 +259,24 @@
         $('#nav').html(htm);
     }
 
-    const DBModel = require("./js/ermodel.js")
-    var ermodel = new DBModel({
-        dbinfo : {
-            host: '127.0.0.1',
-            user: 'emucoo',
-            password: '12345678',
-            port: '3306',
-            database: 'emucoo-pre',
-            multipleStatements: true
-        },
-        onLoaded: function(models) {
-            showModelsNav(models);
-            Graph.drawModels(models, 'canvas', 'graph');
-            // console.log(Graph);
-        }
-    }); 
+    $(function() {
+        document.getElementById('nav').onmousewheel = function(event) {
+            if (!event) event = window.event;
+            this.scrollTop = this.scrollTop - (event.wheelDelta ? event.wheelDelta : -event.detail * 10);
+            return false;
+        };
+
+        $('#open-file-dialog').draggable({
+            cursor: "move"
+        });
+
+        $('#open-db-dialog').draggable({
+            cursor: "move"
+        });
+    });
+
+
+    
 </script>
 </body>
 </html>
