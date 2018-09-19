@@ -21,92 +21,148 @@
     var Graph = Graph || {};
 
     Graph = {
-        w: 960,
-        h: 480,
-        styles: {
-            point: [170, 60]
-        },
-        canvas: null, //(function(){
+        w: 960, h: 480,
+        models: null,
+        canvas: null, 
         connections: [], //关系集合
         rects: null, // rect集合
-        maps: [], //顶点和索引的对应关系，为了建立索引关系
-        config: null
+        graphs: []
     }
 
 
     function redrawConnections() {
-        var me = Graph,
-            r = me.canvas,
-            connections = me.connections;
+        var me = Graph, r = me.canvas, connections = me.connections;
         jQuery.each(connections, function (key, value) {
             r.connection(value);
         });
     }
 
-    function calGraphPositions() {
-        var me = Graph;
-        var models = me.models;
-        var graphs = me.graphs;
-        var cols = Math.floor((me.w - 80) / 200);
 
-        for (var i = 0, len = models.length; i < len; i++) {
-            var x = 220 * (i % cols) + 40;
+    function getSize(str) {
+        let r = str.match(/^\d+/);
+        if (r) {
+            return parseInt(r[0]);
+        } else {
+            return 0;
+        }
+    }
+
+    function calGraphPositions() {
+        var wd = jQuery('#nav').css('width');
+        var lftOffset = 10 + getSize(wd);
+        // console.log(lftOffset);
+        var rgtOffset = 10;
+        var me = Graph;
+        var cols = Math.floor((me.w - lftOffset - rgtOffset) / 200);
+        // console.log('cols = ' + cols);
+        for (var i = 0, len = me.models.length; i < len; i++) {
+            var x = 180 * (i % cols)  + lftOffset;
             var y = (Math.floor(i / cols) + 1) * 50;
-            var graph = {
-                position: {
-                    x: x,
-                    y: y
-                }
-            }
-            graphs[i] = graph;
+            var dn = me.graphs[i] || {};
+            var nn = {position: {x: x, y: y}};
+            jQuery.extend(dn, nn);
+            me.graphs[i] = dn;
+            // console.log(me.graphs[i]);
         }
     }
 
     function drawGraphDom(model) {
+        function judgeIndex(fld) {
+            if (model.indexs) {
+                for (let i = 0, l = model.indexs.length; i < l; i++) {
+                    let element = model.indexs[i];
+                    if (element.field.indexOf(fld.name) > -1) {                        
+                        switch(element.type) {
+                            case "PRIMARY KEY": {
+                                return '<i class="fa fa-key" title="'+ element.type +'"></i>';
+                            }
+                            case "UNIQUE KEY" : {
+                                return '<i class="fa fa-dot-circle-o" title="'+ element.type +'"></i>';
+                            }
+                            case "FULLTEXT KEY": {
+                                return '<i class="fa fa-circle" title="'+ element.type +'"></i>';
+                            }
+                            case "KEY": {
+                                return '<i class="fa fa-circle-o" title = "'+ element.type +'"></i>';
+                            }
+                            default: {
+                                return '';
+                            }
+                        }
+                    }
+                }
+            }
+            return '';
+        }
         var dom = '<table>';
         model.fields.forEach(fld => {
-            dom += '<tr><td>'+ fld.name +'</td><td>'+fld.type+'</td><td>'+fld.null+'</td><td>'+fld.default+'</td><td>'+fld.extra+'</td><td>'+fld.comment+'</td></tr>'
+            let k = judgeIndex(fld);
+            console.log(k);
+            dom += '<tr><td>'+ k +'</td><td>'+ fld.name +'</td><td>'+fld.type+'</td><td>'+fld.null+'</td><td>'+fld.default+'</td><td>'+fld.extra+'</td><td>'+fld.comment+'</td></tr>'
         });
         dom += '</table>'
         return dom;
     }
 
-    function drawGraph() {
-        function dragHandler(target) {
-            var me = Graph;
-            var x = parseInt(target.style.left, 10);
-            var y = parseInt(target.style.top, 10);
-            if (Math.abs(x - me.ox) < 5 && Math.abs(y - me.oy) < 5) {
-                return;
+    function focusOnGraph(idx) {
+        var me = Graph;
+        var dom = document.getElementById(me.graphs[idx].domId);
+        dom.style.zIndex = me.graphs.length;
+        var zidx = me.graphs[idx].zIndex;
+        me.graphs[idx].zIndex = me.graphs.length;
+        for (var i = 0, l = me.graphs.length; i < l; i++) {
+            var el = document.getElementById(me.graphs[i].domId);
+            $(el).css('border-color', '#999999');
+            if (me.graphs[i].zIndex > zidx) {
+                me.graphs[i].zIndex -= 1;
+                el.style.zIndex = me.graphs[i].zIndex;
             }
-            var att = {
-                x: x,
-                y: y
-            };
-
-            //var id = T.dom.getAttr(target,'data-id');
-            var index = target.getAttribute('data-index');
-            var rect = me.canvas.getById('rect' + index);
-            rect.attr(att);
-            // me.redrawConnections();
         }
+        $(dom).css('border-color', '#ff8989');
+    }
 
+    function dragHandler(target) {
+        var me = Graph;
+        var x = parseInt(target.style.left, 10);
+        var y = parseInt(target.style.top, 10);
+        if (Math.abs(x - me.ox) < 5 && Math.abs(y - me.oy) < 5) {
+            return;
+        }
+        var att = {
+            x: x,
+            y: y
+        };
+
+        //var id = T.dom.getAttr(target,'data-id');
+        var index = target.getAttribute('data-index');
+        var rect = me.canvas.getById('rect' + index);
+        rect.attr(att);
+        me.graphs[index].position.x = x;
+        me.graphs[index].position.y = y;
+        // me.redrawConnections();
+    }
+
+    function drawGraph() {
         calGraphPositions();
 
         var me = Graph;
-        var graphContainer = document.getElementById(me.graphContainerName);
+        var graphContainer = document.getElementById(me.modelContainerName);
         for (var i = 0, len = me.graphs.length; i < len; i++) {
-            var x = me.graphs[i].position.x,
-                y = me.graphs[i].position.y;
+            var x = me.graphs[i].position.x,   y = me.graphs[i].position.y;
+            var zidx = i + 1;
 
             var divE = document.createElement('div');
             divE.setAttribute('class', 'graph');
-            divE.setAttribute('id', 'div' + i);
+            divE.setAttribute('id', 'gdom' + i);
             divE.setAttribute('data-index', i);
-            divE.setAttribute('style', 'left:' + x + 'px; top:' + y + 'px;' + 'z-index:'+ i + ';');
-            divE.innerHTML = '<div class="title">' + me.models[i].name + '</div><div class="content">' + drawGraphDom(me.models[i]) + '</div>';
+            divE.setAttribute('style', 'left:' + x + 'px; top:' + y + 'px;' + 'z-index:'+ zidx + ';');
+            var graph_title = '<div class="title">' + me.models[i].name + '</div>';
+            var graph_icons = '<div class="icons"><a class="w"><i class="fa fa-window-minimize"></i></a></div>';
+            var graph_body = drawGraphDom(me.models[i]);
+            divE.innerHTML = '<div class="head">' + graph_title + graph_icons + '</div><div class="content">' + graph_body + '</div>';
             graphContainer.appendChild(divE);
             me.graphs[i].domId = divE.getAttribute('id');
+            me.graphs[i].zIndex = zidx;
 
             var elm = document.getElementById(me.graphs[i].domId);
             jQuery(elm).draggable({
@@ -123,8 +179,31 @@
                 }
             });
 
-            var w = elm.getAttribute('width');
-            var h = elm.getAttribute('height');
+            jQuery(elm).find('div.content').first().hide();
+            jQuery(elm).find('div.icons a.w').each((i, n) => {
+                $(n).click(function(event) {
+                    var icn = $(this).children('i').first();
+                    if (icn.hasClass('fa fa-window-maximize')) {
+                        icn.removeClass('fa fa-window-maximize');
+                        icn.addClass('fa fa-window-minimize');
+                        // console.log($(this).parent().parent().parent().children().last());
+                        icn.parent().parent().parent().parent().children().last().hide();
+                    } else {
+                        icn.removeClass('fa fa-window-minimize');
+                        icn.addClass('fa fa-window-maximize');
+                        // console.log($(this).parent().parent().parent().children().last()); 
+                        icn.parent().parent().parent().parent().children().last().show();
+                    }
+                });
+            });
+
+            jQuery(elm).mousedown(function(event){
+                var idx = parseInt($(this).attr('data-index'));
+                focusOnGraph(idx);
+            });
+
+            var w = getSize($(elm).css('width'));
+            var h = getSize($(elm).css('height'));
             var rect = me.canvas.rect(x, y, w, h);
             rect.id = 'rect' + i;
             rect.attr({
@@ -135,21 +214,84 @@
                 cursor: "move"
             });
             me.rects[i] = rect;
+            me.graphs[i].rectId = rect.id;
         }
     }
 
-    Graph.drawModels = function (models, canvasName, graphContainerName) {
+    
+
+    Graph.drawModels = function (models, canvasName, modelContainerName) {
         var me = Graph;
+        if (me.canvas) {
+            me.canvas.clear();
+            me.canvas = null;
+        }
+        if (me.rects) {
+            me.rects.clear();
+            me.rects = null;
+        }
+        $('#' + canvasName).find('svg').each((i, n) => {
+            console.log(n);
+            $(n).remove();
+        });
+        $('#' + modelContainerName).children('div').each((i, n) => {$(n).remove();});
         me.models = models;
         me.canvasName = canvasName;
-        me.graphContainerName = graphContainerName;
+        me.modelContainerName = modelContainerName;
         me.w = util.page.getViewWidth();
         me.h = util.page.getViewHeight();
         me.canvas = Raphael(canvasName, me.w, me.h);
         me.rects = me.canvas.set();
         me.graphs = [];
-
         drawGraph();
+    }
+
+    Graph.showAllGraphs = function(st) {
+        var me = Graph;
+        if (st) {
+            me.graphs.forEach(element => {
+                var ob = $('#' + element.domId);
+                ob.show();
+                var icn = ob.find('div.icons a.v').first().children('i').first();
+                if (icn) {
+                    icn.removeClass();
+                    icn.addClass('fa fa-eye-slash');
+                }
+            });
+        } else {
+            me.graphs.forEach(element => {
+                var ob = $('#' + element.domId);
+                ob.hide();
+                var icn = ob.find('div.icons a.v').first().children('i').first();
+                if (icn) {
+                    icn.removeClass();
+                    icn.addClass('fa fa-eye');
+                }
+            });
+        }
+    }
+
+    Graph.focusGraph = function(graphNm) {
+        var me = Graph;
+        for(var i = 0,  ln = me.models.length; i < ln; i++) {
+            if (me.models[i].name == graphNm) {
+                $('#' + me.graphs[i].domId).show();
+                focusOnGraph(i); 
+                break;
+            }
+        }
+    }
+
+    Graph.hideGraph = function(graphNm) {
+        var me = Graph;
+        for(var i = 0,  ln = me.models.length; i < ln; i++) {
+            if (me.models[i].name == graphNm) {
+                var o = $('#' + me.graphs[i].domId);
+                o.hide();
+                o.css('border-color', '#999999');
+                break;
+            }
+        }
     }
 
     Graph.resize = function (width, height) {
@@ -165,12 +307,47 @@
         calGraphPositions();
         for(var i = 0; i < me.graphs.length; i++){
             var x = me.graphs[i].position.x, y = me.graphs[i].position.y;
-            var elm = document.getElementById('div' + i);
+            var elm = document.getElementById(me.graphs[i].domId);
             elm.style.left = x + 'px';
             elm.style.top = y + 'px';
             me.rects[i].attr({x: x, y: y});
         }
     }
+
+    Graph.maxAllGraphs = function(st) {
+        $('#graph div.graph').each((i, n) => {
+            var icn = $(n).find('div.icons a.w').first().children('i').first();
+            if (st) {
+                icn.removeClass('fa fa-window-minimize');
+                icn.addClass('fa fa-window-maximize');
+                // console.log($(this).parent().parent().parent().children().last());
+                icn.parent().parent().parent().parent().children().last().show();
+            } else {
+                icn.removeClass('fa fa-window-maximize');
+                icn.addClass('fa fa-window-minimize');
+                // console.log($(this).parent().parent().parent().children().last()); 
+                icn.parent().parent().parent().parent().children().last().hide();
+            } 
+        });
+    }
+
+    // Graph.handlerMove = function (target) {
+    //     var me = Graph;
+    //     var x = parseInt(target.style.left, 10);
+    //     var y = parseInt(target.style.top, 10);
+
+    //     if (Math.abs(x - me.ox) < 5 && Math.abs(y - me.oy) < 5) {
+    //         return;
+    //     }
+
+    //     var att = {x: x, y: y};
+    //     //var id = T.dom.getAttr(target,'data-id');
+    //     var id = $(target).attr("data-id");
+    //     var rect = me.canvas.getById(id);
+    //     rect.attr(att);
+    //     me.redrawConnections();
+    //     // me.r.safari();
+    // }
 
     window.Graph = Graph;
 
@@ -300,28 +477,7 @@
     //     });
     // }
 
-    Graph.handlerMove = function (target) {
-        var me = Graph;
-
-        var x = parseInt(target.style.left, 10);
-        var y = parseInt(target.style.top, 10);
-
-        if (Math.abs(x - me.ox) < 5 && Math.abs(y - me.oy) < 5) {
-            return;
-        }
-
-        var att = {
-            x: x,
-            y: y
-        };
-
-        //var id = T.dom.getAttr(target,'data-id');
-        var id = $(target).attr("data-id");
-        var rect = me.canvas.getById(id);
-        rect.attr(att);
-        me.redrawConnections();
-        // me.r.safari();
-    }
+    
 
 
 

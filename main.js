@@ -1,19 +1,17 @@
 const {app, BrowserWindow} = require('electron')
 const path = require('path')
 const url = require('url')
-const mysql = require('mysql')
 
 
 // 保持一个对于 window 对象的全局引用，如果你不这样做，
 // 当 JavaScript 对象被垃圾回收， window 会被自动地关闭
 let win
-let dbconn
 
 function createWindow() {
   // 创建浏览器窗口。
   win = new BrowserWindow({
-    width: 800,
-    height: 600
+    width: 1024,
+    height: 800
   })
 
   // 然后加载应用的 index.html。
@@ -23,43 +21,13 @@ function createWindow() {
     slashes: true
   }))
 
-  // dbconn = mysql.createConnection({
-  //   host: '192.168.16.173',
-  //   user: 'emotwo',
-  //   password: 'emu2018two',
-  //   port: '3306',
-  //   database: 'emucoo-cfb'
-  // });
-
-  // var dbtables = Array();
-  // dbconn.connect(function(err) {
-  //   (function(conn) {
-  //     conn.query("show tables", function(err, rss){
-  //       console.log(err);
-  //       rss.forEach(element => {
-  //         var tbl = {"name": element['Tables_in_emucoo-cfb'], "fields": []}          
-  //         conn.query('desc ' + element['Tables_in_emucoo-cfb'], function(e, rs){
-  //           rs.forEach(r => {
-  //             tbl.fields.push(r)
-  //           });
-  //         })
-  //         dbtables.push(tbl)
-  //       });
-        
-  //       dbtables.forEach(element => {
-  //         console.log(element)
-  //       });
-  //     });
-  //   })(dbconn);
-  // });
-
   // 打开开发者工具。
   win.webContents.openDevTools()
 
   // 当 window 被关闭，这个事件会被触发。
   win.on('closed', () => {
     // 取消引用 window 对象，如果你的应用支持多窗口的话，
-    // 通常会把多个 window 对象存放在一个数组里面，
+    // 通常会把多个 window 对象存放在一个数组里面
     // 与此同时，你应该删除相应的元素。
     win = null
   })
