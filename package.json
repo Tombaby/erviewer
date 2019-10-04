@@ -1,27 +1,42 @@
 {
-    "name": "erview",
-    "description": "using for modeling the ER diagram",
-    "version": "1.1.0",
-    "main": "main.js",
-    "scripts": {
-        "start": "electron .",
-        "pack": "electron-builder --mac --x64"
-    },
-    "build": {
-        "appId": "net.draftidea.erview",
-        "mac": {
-            "category": "public.app-category.utilities",
-            "target": ["dmg"]
-        }
-    },
-    "dependencies": {
-        "mysql": "^2.15.0",
-        "node-sqlparser": "^1.0.2",
-        "simple-sql-parser": "^2.0.0-alpha.1",
-        "underscore": "^1.9.0"
-    },
-    "devDependencies": {
-        "electron-builder": "^20.26.0",
-        "electron": "^1.8.6"
+  "name": "erview",
+  "description": "using for modeling the ER diagram",
+  "version": "1.1.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --mac --x64",
+    "dev": "lite-server"
+  },
+  "build": {
+    "appId": "net.draftidea.erview",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg"
+      ]
     }
+  },
+  "dependencies": {
+    "mysql": "^2.15.0",
+    "node-sqlparser": "^1.0.2",
+    "simple-sql-parser": "^2.0.0-alpha.1",
+    "systemjs": "^6.1.2",
+    "underscore": "^1.9.0"
+  },
+  "devDependencies": {
+    "electron": "^1.8.6",
+    "electron-builder": "^20.26.0",
+    "lite-server": "^2.5.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tombaby/erviewer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tombaby/erviewer/issues"
+  },
+  "homepage": "https://github.com/Tombaby/erviewer#readme"
 }

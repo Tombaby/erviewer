@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ERView</title>
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <style type="text/css">
+        html {height: 100%; width: 100%;}
+        body {margin:0; padding:0; font-size: 10px; height: 100%; width: 100%;}
+        p {margin:0; padding:0;}
+        
+        #banner { width: 100%; height: 32px; position: fixed; top: 0; background-color: lightgray; z-index: 9999; opacity: 0.85; font-size: 12pt; }
+
+        #banner ul {list-style: none; line-height: 32px; margin-left: 80px; margin-top: 0;}
+        #banner ul li {display: inline; padding-left: 3px; padding-right: 3px; }
+        #banner ul li a {cursor:  pointer; padding: 3px; }
+        #banner ul li a:hover {color: blue;}
+        #banner ul li.spliter {font-size: 14pt; color: #a9a9a9;}
+
+        #main { display: flex; flex:auto; }
+
+        #nav { width: 120px; max-width: 120px; height: 100%; position: fixed; left: 0; background-color: lightgray; z-index: 9998; opacity: 0.75; overflow: scroll }
+
+        #nav ul {display: inline-block; margin-top: 35px; margin-left: 0; padding-left:0; list-style: none; }
+        #nav ul li { margin: 0;padding-left: 2px;}
+        #nav ul li {cursor: pointer; overflow: hidden; line-height: 12pt;}
+        #nav ul li i.v {color: cornflowerblue;}
+        #nav ul li i.h {color: grey;}
+        #nav ul li i:hover {color:hotpink;}
+
+        #nav ul li span {padding-left: 3px; overflow: hidden;}
+        #nav ul li span:hover {color: blueviolet;}
+
+
+        #graph div.graph {
+            background: none repeat scroll 0 0 #ffffff;
+            border-style: solid; border-width: 1px; border-color: #999999; border-radius: 4px;
+            box-shadow: 2px 1px 10px rgba(39, 57, 102, 0.44);
+            color: #333333;
+            display: inline-block;
+            position: absolute;
+            min-height: 32px;
+        }
+        #graph div.graph div.head { border-bottom: 1px solid #cccccc; border-top-left-radius: 4px; border-top-right-radius: 4px; overflow: auto; padding: 5px; background: #f0f6f7; }
+        #graph div.graph div.head div.title { float: left; }
+        #graph div.graph div.head div.icons { float: right; margin-left: 20px; }
+        #graph div.graph div.head div.icons a { border: none; margin-left: 5px;}
+        #graph div.graph div.content { padding: 5px; text-align: center;}
+
+        #graph div.graph div.content td { text-align: left; border-right-style: solid; border-right-color: #eeeeee; border-right-width: 1px; }
+        #button {width: 200px; height: 200px; position: absolute; top:5px; right: 10px; display: block; font-size: 16px; font-weight: bold;}
+
+        .icon {padding: 4px; }
+        .icon:hover {border-color: #666666; background: #999999; cursor: pointer;}
+
+        .dialog {width: 400px; display: none; position: absolute; z-index: 999;  border-style:solid; border-width: 1px; border-color: #cccccc; border-radius: 4px; box-shadow: 2px 1px 10px rgba(39, 57, 102, 0.44); color: black; background-color: #ffffff; }
+        .dialog-head {height: 16px; padding: 4px; background-color: #eeeeee; border-bottom: 1px solid #cccccc; border-top-left-radius: 4px; border-top-right-radius: 4px;}
+        .dialog-head .title {float: left; font-size: 12px; font-style: inherit; }
+        .dialog-head .icons {float: right; padding: 2px; border: none;}
+        .dialog-body {padding: 4px; min-height: 160px;}
+
+        #dbform table {margin-left: 50px; padding: 10px;}
+        #dbform input {width: 180px;}
+    </style>
+</head>
+<body>
+
+<div id="banner">
+    <ul>
+        <!-- <li><a title="open model file" onclick="openFileDialog()"><i class="icon iconfont icon-refresh"></i></a></li> -->
+        <!-- <li><a title="save model file"><i class="icon iconfont icon-download"></i></a></li> -->
+        <!-- <li><a title="import from db"><i class="icon iconfont icon-down"></i></a></li> -->
+        <!-- <li><a title="export to db"><i class="icon iconfont icon-up"></i></a></li> -->
+        <li><a title="show nav side bar" onclick="onShowNavBar(this)"><i class="fa fa-columns"></i></a></li>
+        <li class="spliter">|</li>
+        <li><a title="open model file" onclick="openFileDialog(this)"><i class="fa fa-folder-open"></i></a></li>
+        <li><a title="save model file"><i class="fa fa-floppy-o"></i></a></li>
+        <li class="spliter">|</li>
+        <li><a title="import models from db" onclick="openDBDialog(this)"><i class="fa fa-download"></i></a></li>
+        <li><a title="export models to db"><i class="fa fa-upload"></i></a></li>
+        <li class="spliter">|</li>
+        <li><a title="show or hide all table graphs" onclick="onShowAllGraphs(this)"><i class="fa fa-eye-slash"></i></a></li>
+        <li><a title="max or min all table graphs" onclick="onMaxAllGraphs(this)"><i class="fa fa-window-maximize"></i></a></li>
+    </ul>
+</div
+<div id="main">
+    <div id="nav">
+
+    </div>
+    <div id="container">
+        <div id="canvas"></div>
+        <div id="graph"></div>
+    </div>
+</div>
+
+<div id="open-db-dialog" class="dialog">
+    <div class="dialog-head">
+        <div class="title">Connect Database...</div>
+        <div class="icons"><a onclick="closeDialog(this)"><i class="fa fa-close"></i></a></div>
+    </div>
+    <div class="dialog-body">
+        <form id="dbform">
+            <table>
+                <tr><td><label for="host">Host</label></td><td>:</td><td><input type="text" name="host"></input></td></tr>
+                <tr><td><label for="port">Port</label></td><td>:</td><td><input type="text" name="port"></input></td></tr>
+                <tr><td><label for="database">Database</label></td><td>:</td><td><input type="text" name="database"></input></td></tr>
+                <tr><td><label for="username">User Name</label></td><td>:</td><td><input type="text" name="username"></input></td></tr>
+                <tr><td><label for="password">Password</label></td><td>:</td><td><input type="text" name="password"></input></td></tr>
+                <tr><td></td><td></td><td><button type="reset">Reset</button><button type="button" onclick="importFromDB(this)">Connect</button></td></tr>
+            </table>
+        </form>
+    </div>
+</div>
+
+<div id="open-file-dialog" class="dialog">
+    <div class="dialog-head">
+        <div class="title">Open Model File...</div>
+        <div class="icons"><a onclick="closeDialog(this)"><i class="fa fa-close"></i></a></div>
+    </div>
+    <div class="dialog-body">
+        <form>
+            <input type="file" ></file>
+        </form>
+    </div>
+</div>
+<script type="text/javascript" src="js/raphael.js"></script>
+<script type="text/javascript" src="js/jquery-1.12.4.js"></script>
+<script>if (typeof module === 'object') {window.jQuery = window.$ = module.exports;};</script>
+<script type="text/javascript" src="js/jquery-ui-1.12.1.js"></script>
+<script type="text/javascript" src="js/connection.js"></script>
+<script type="text/javascript" src="js/graph.js"></script>
+
+<script>
+    var dbinfo = {
+        host: '127.0.0.1',        
+        port: '3306',
+        database: 'emucoo-pre',
+        user:'emucoo',
+        password:'12345678',
+        multipleStatements: true
+    };
+    const DBModel = require("./js/ermodel.js");
+
+    function openDBDialog(obj) {
+        event.preventDefault();
+        $('#dbform input[name="host"]:first').val(dbinfo.host);
+        $('#dbform input[name="port"]:first').val(dbinfo.port);
+        $('#dbform input[name="database"]:first').val(dbinfo.database);
+        $('#dbform input[name="username"]:first').val(dbinfo.user);
+        $('#dbform input[name="password"]:first').val(dbinfo.password);
+        var x = window.innerWidth / 2 - 200; 
+        $('#open-db-dialog').css({'display':'inline-block', 'left': x+'px', 'top': '80px'});
+    }
+
+    function importFromDB(obj) {
+        dbinfo.host = $('#dbform input[name="host"]:first').val();
+        dbinfo.port = $('#dbform input[name="port"]:first').val();
+        dbinfo.database = $('#dbform input[name="database"]:first').val();
+        dbinfo.user = $('#dbform input[name="username"]:first').val();
+        dbinfo.password = $('#dbform input[name="password"]:first').val();
+        // console.log(dbinfo);
+        
+        let onLoadModels = function(models) {
+            document.title = 'ERView :: '+ dbinfo.database + '@' + dbinfo.host;
+            $('#open-db-dialog').css('display', 'none');
+            showModelsNav(models);
+            Graph.drawModels(models, 'canvas', 'graph');
+        }
+        let ermodel = new DBModel({dbinfo : dbinfo}); 
+        ermodel.addListener(onLoadModels);
+        ermodel.load();
+    }
+
+    function closeDialog(obj) {
+        $(obj).parent().parent().parent().hide();
+    }
+
+    function openFileDialog(obj) {
+        event.preventDefault();
+        var x = window.innerWidth / 2 - 200; 
+        $('#open-file-dialog').css({'display':'inline-block', 'left': x+'px', 'top': '80px'});
+    }
+
+    function onShowNavBar(obj) {
+        if ($('#nav').css('width') == '0px'){
+            $('#nav').css('width', '120px');
+        } else {
+            $('#nav').css('width', '0px');
+        }
+        Graph.redrawGraph();
+    }
+
+    function onMaxAllGraphs(obj) {
+        var icn = $(obj).children('i').first();
+        if (icn) {
+            if (icn.hasClass('fa fa-window-maximize')) {
+                icn.removeClass('fa fa-window-maximize');
+                icn.addClass('fa fa-window-minimize');
+                Graph.maxAllGraphs(true);
+            } else {
+                icn.removeClass('fa fa-window-minimize');
+                icn.addClass('fa fa-window-maximize');
+                Graph.maxAllGraphs(false);
+            }
+        }
+    }
+
+    function onFocus2Graph(obj) {
+        var i = $(obj).parent().children('i:first');
+        i.removeClass('v h');
+        i.addClass('v');
+        Graph.focusGraph($(obj).text().trim());
+    }
+
+    function onShowOneGraph(obj) {
+        var nm = $(obj).next().text().trim();
+        console.log($(obj).css('color'));
+        if ($(obj).hasClass('h')) {
+            $(obj).removeClass('v h');
+            $(obj).addClass('v');
+            Graph.focusGraph(nm);
+        } else {
+            $(obj).removeClass('v h');
+            $(obj).addClass('h');
+            Graph.hideGraph(nm);
+        }
+    }
+
+    function onShowAllGraphs(obj) {
+        var icon = $(obj).children('i').first();
+        if (icon) {
+            if (icon.hasClass('fa fa-eye')) {
+                icon.removeClass('fa fa-eye');
+                icon.addClass('fa fa-eye-slash');
+                Graph.showAllGraphs(true);
+                $('#nav ul li i').each((i, n) => {
+                    $(n).removeClass('v h');
+                    $(n).addClass('v');
+                });
+            } else {
+                icon.removeClass('fa fa-eye-slash');
+                icon.addClass('fa fa-eye');
+                Graph.showAllGraphs(false);
+                $('#nav ul li i').each((i, n) => {
+                    $(n).removeClass('v h');
+                    $(n).addClass('h');
+                });
+            }
+        }
+    }
+
+    function showModelsNav(models) {
+        var htm = '<ul>';
+        models.forEach(element => {
+            var item = '<li><i class="fa fa-table v" onclick="onShowOneGraph(this)"></i><span title="'+ element.name + '  :  ' + element.comment +'" onClick="onFocus2Graph(this)"> ' + element.name + '</span></li>';
+            htm += item;
+        });
+        htm += '</ul>';
+        $('#nav').html(htm);
+    }
+
+    $(function() {
+        document.getElementById('nav').onmousewheel = function(event) {
+            if (!event) event = window.event;
+            this.scrollTop = this.scrollTop - (event.wheelDelta ? event.wheelDelta : -event.detail * 10);
+            return false;
+        };
+
+        $('#open-file-dialog').draggable({
+            cursor: "move"
+        });
+
+        $('#open-db-dialog').draggable({
+            cursor: "move"
+        });
+    });
+
+
+    
+</script>
+</body>
+</html>
